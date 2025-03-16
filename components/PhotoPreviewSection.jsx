@@ -4,20 +4,23 @@ import { TouchableOpacity, SafeAreaView, Image, StyleSheet, View } from 'react-n
 
 const PhotoPreviewSection = ({ photo, handleRetakePhoto, handleSavePhoto }) => (
   <SafeAreaView style={styles.container}>
-    <View style={styles.box}>
+    <View style={styles.imageWrapper}>
       <Image
-        style={styles.previewContainer}
+        style={styles.image}
         // Display the saved image URI if available, or fallback to base64.
-        source={photo.uri ? { uri: photo.uri } : { uri: 'data:image/jpg;base64,' + photo.base64 }}
+        source={
+          photo.uri
+            ? { uri: photo.uri }
+            : { uri: 'data:image/jpg;base64,' + photo.base64 }
+        }
       />
     </View>
-
-    <View style={styles.buttonContainer}>
-      <TouchableOpacity style={styles.button} onPress={handleRetakePhoto}>
-        <Fontisto name="trash" size={36} color="black" />
+    <View style={styles.actionsContainer}>
+      <TouchableOpacity style={styles.actionButton} onPress={handleRetakePhoto}>
+        <Fontisto name="trash" size={32} color="#fff" />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleSavePhoto}>
-        <AntDesign name="save" size={36} color="black" />
+      <TouchableOpacity style={styles.actionButton} onPress={handleSavePhoto}>
+        <AntDesign name="save" size={32} color="#fff" />
       </TouchableOpacity>
     </View>
   </SafeAreaView>
@@ -26,35 +29,46 @@ const PhotoPreviewSection = ({ photo, handleRetakePhoto, handleSavePhoto }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  box: {
-    borderRadius: 15,
-    padding: 1,
-    width: '90%',
-    backgroundColor: 'darkgray',
+    backgroundColor: '#1a1a1a', // Sleek dark background
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
-  previewContainer: {
-    width: '95%',
-    height: '75%',
-    borderRadius: 15,
-  },
-  buttonContainer: {
-    marginTop: '1%',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  imageWrapper: {
     width: '100%',
+    aspectRatio: 3 / 4, // Adjust this ratio as needed for your images
+    borderRadius: 15,
+    overflow: 'hidden',
+    backgroundColor: '#333', // Fallback background color
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 10,
+    marginBottom: 20,
   },
-  button: {
-    backgroundColor: 'gray',
-    borderRadius: 25,
-    padding: 10,
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '60%',
+  },
+  actionButton: {
+    backgroundColor: '#4CAF50', // Vibrant green for a pop of color
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
   },
 });
 
