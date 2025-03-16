@@ -2,44 +2,35 @@ import PhotoPreviewSection from '@/components/PhotoPreviewSection';
 import { AntDesign } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRef, useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
+import * as MediaLibrary from 'expo-media-library';
 
 export default function Camera() {
-  // State to manage which camera is active ('back' or 'front')
   const [facing, setFacing] = useState('back');
-  
-  // Hook to check and request camera permissions
   const [permission, requestPermission] = useCameraPermissions();
-  
-  // State to store the taken photo (initially null)
   const [photo, setPhoto] = useState(null);
-  
-  // Reference to the CameraView component to call camera methods
   const cameraRef = useRef(null);
 
-  // If the permission object isn't loaded yet, return an empty view.
   if (!permission) {
     return <View />;
   }
 
-  // If permissions are loaded but not granted, show a prompt.
   if (!permission.granted) {
     return (
       <View style={styles.container}>
         <Text style={{ textAlign: 'center' }}>
           We need your permission to show the camera
         </Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Button onPress={requestPermission} title="Grant Permission" />
       </View>
     );
   }
 
-  // Function to toggle between 'back' and 'front' cameras.
   function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
+    setFacing((current) => (current === 'back' ? 'front' : 'back'));
   }
 
-  // Function to take a photo asynchronously.
+  // Capture the photo and store it temporarily.
   const handleTakePhoto = async () => {
     if (cameraRef.current) {
       const options = {
@@ -47,30 +38,56 @@ export default function Camera() {
         base64: true,
         exif: false,
       };
-      const takedPhoto = await cameraRef.current.takePictureAsync(options);
-      setPhoto(takedPhoto);
+      const takenPhoto = await cameraRef.current.takePictureAsync(options);
+      setPhoto(takenPhoto);
     }
   };
 
-  // Function to retake the photo by resetting the photo state.
+  // Save the captured photo to the iOS gallery using expo-media-library.
+  const handleSavePhoto = async () => {
+    if (photo && photo.uri) {
+      // Request permission to access the media library.
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission required',
+          'We need permission to access your photo library to save photos.'
+        );
+        return;
+      }
+      try {
+        const asset = await MediaLibrary.createAssetAsync(photo.uri);
+        Alert.alert('Success', 'Photo saved to your gallery!');
+        // Optionally, add the asset to a specific album:
+        // await MediaLibrary.createAlbumAsync("My App Album", asset, false);
+      } catch (error) {
+        console.error('Error saving photo to gallery:', error);
+        Alert.alert('Error', 'Failed to save photo to gallery.');
+      }
+    }
+  };
+
   const handleRetakePhoto = () => setPhoto(null);
 
-  // If a photo has been taken, show the preview section.
-  if (photo)
+  // If a photo is captured, show the preview with Save and Retake options.
+  if (photo) {
     return (
-      <PhotoPreviewSection photo={photo} handleRetakePhoto={handleRetakePhoto} />
+      <PhotoPreviewSection
+        photo={photo}
+        handleRetakePhoto={handleRetakePhoto}
+        handleSavePhoto={handleSavePhoto}
+      />
     );
+  }
 
-  // Main UI: Display the camera view with two buttons.
+  // Main camera UI.
   return (
     <View style={styles.container}>
       <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
         <View style={styles.buttonContainer}>
-          {/* Button to toggle camera facing */}
           <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
             <AntDesign name="retweet" size={44} color="black" />
           </TouchableOpacity>
-          {/* Button to take a photo */}
           <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
             <AntDesign name="camera" size={44} color="black" />
           </TouchableOpacity>
@@ -87,7 +104,7 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
-    bottom: 95
+    bottom: 95,
   },
   buttonContainer: {
     flex: 1,
@@ -102,10 +119,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     backgroundColor: 'gray',
     borderRadius: 10,
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
   },
 });
