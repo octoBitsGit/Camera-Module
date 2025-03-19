@@ -7,7 +7,6 @@ const PhotoPreviewSection = ({ photo, handleRetakePhoto, handleSavePhoto }) => (
     <View style={styles.imageWrapper}>
       <Image
         style={styles.image}
-        // Display the saved image URI if available, or fallback to base64.
         source={
           photo.uri
             ? { uri: photo.uri }
@@ -29,17 +28,17 @@ const PhotoPreviewSection = ({ photo, handleRetakePhoto, handleSavePhoto }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a', // Sleek dark background
+    backgroundColor: '#1a1a1a',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   imageWrapper: {
     width: '100%',
-    aspectRatio: 3 / 4, // Adjust this ratio as needed for your images
+    height: '80%',
     borderRadius: 15,
     overflow: 'hidden',
-    backgroundColor: '#333', // Fallback background color
+    backgroundColor: '#333',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
@@ -50,7 +49,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain', // Ensure the image fits within the box without cropping
   },
   actionsContainer: {
     flexDirection: 'row',
@@ -58,7 +57,7 @@ const styles = StyleSheet.create({
     width: '60%',
   },
   actionButton: {
-    backgroundColor: '#4CAF50', // Vibrant green for a pop of color
+    backgroundColor: '#4CAF50',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 30,

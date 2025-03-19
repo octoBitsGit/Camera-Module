@@ -2,8 +2,9 @@ import PhotoPreviewSection from '@/components/PhotoPreviewSection';
 import { AntDesign } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRef, useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Alert, Image } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 export default function Camera() {
   const [facing, setFacing] = useState('back');
@@ -30,7 +31,6 @@ export default function Camera() {
     setFacing((current) => (current === 'back' ? 'front' : 'back'));
   }
 
-  // Capture the photo and store it temporarily.
   const handleTakePhoto = async () => {
     if (cameraRef.current) {
       const options = {
@@ -39,14 +39,34 @@ export default function Camera() {
         exif: false,
       };
       const takenPhoto = await cameraRef.current.takePictureAsync(options);
-      setPhoto(takenPhoto);
+      
+      // Define crop area based on guide box proportions
+      const guideBoxWidth = takenPhoto.width * 0.8;
+      const guideBoxHeight = takenPhoto.height * 0.3;
+      const originX = (takenPhoto.width - guideBoxWidth) / 2;
+      const originY = (takenPhoto.height - guideBoxHeight) / 2;
+      
+      const croppedPhoto = await ImageManipulator.manipulateAsync(
+        takenPhoto.uri,
+        [
+          {
+            crop: {
+              originX,
+              originY,
+              width: guideBoxWidth,
+              height: guideBoxHeight,
+            },
+          },
+          { resize: { width: 800, height: 600 } }, // Ensure consistent aspect ratio
+        ],
+        { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setPhoto(croppedPhoto);
     }
   };
 
-  // Save the captured photo to the iOS gallery using expo-media-library.
   const handleSavePhoto = async () => {
     if (photo && photo.uri) {
-      // Request permission to access the media library.
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
@@ -56,10 +76,8 @@ export default function Camera() {
         return;
       }
       try {
-        const asset = await MediaLibrary.createAssetAsync(photo.uri);
+        await MediaLibrary.createAssetAsync(photo.uri);
         Alert.alert('Success', 'Photo saved to your gallery!');
-        // Optionally, add the asset to a specific album:
-        // await MediaLibrary.createAlbumAsync("My App Album", asset, false);
       } catch (error) {
         console.error('Error saving photo to gallery:', error);
         Alert.alert('Error', 'Failed to save photo to gallery.');
@@ -69,7 +87,6 @@ export default function Camera() {
 
   const handleRetakePhoto = () => setPhoto(null);
 
-  // If a photo is captured, show the preview with Save and Retake options.
   if (photo) {
     return (
       <PhotoPreviewSection
@@ -80,10 +97,12 @@ export default function Camera() {
     );
   }
 
-  // Main camera UI.
   return (
     <View style={styles.container}>
       <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
+        <View style={styles.overlay}>
+          <View style={styles.guideBox} />
+        </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
             <AntDesign name="retweet" size={44} color="black" />
@@ -105,6 +124,19 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
     bottom: 95,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  guideBox: {
+    width: '80%',
+    height: '30%',
+    borderWidth: 3,
+    borderColor: 'white',
+    backgroundColor: 'transparent',
   },
   buttonContainer: {
     flex: 1,
