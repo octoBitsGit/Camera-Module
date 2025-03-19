@@ -1,29 +1,36 @@
 import { Fontisto, AntDesign } from '@expo/vector-icons';
 import React from 'react';
-import { TouchableOpacity, SafeAreaView, Image, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, SafeAreaView, Image, StyleSheet, View, Dimensions } from 'react-native';
 
-const PhotoPreviewSection = ({ photo, handleRetakePhoto, handleSavePhoto }) => (
-  <SafeAreaView style={styles.container}>
-    <View style={styles.imageWrapper}>
-      <Image
-        style={styles.image}
-        source={
-          photo.uri
-            ? { uri: photo.uri }
-            : { uri: 'data:image/jpg;base64,' + photo.base64 }
-        }
-      />
-    </View>
-    <View style={styles.actionsContainer}>
-      <TouchableOpacity style={styles.actionButton} onPress={handleRetakePhoto}>
-        <Fontisto name="trash" size={32} color="#fff" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.actionButton} onPress={handleSavePhoto}>
-        <AntDesign name="save" size={32} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  </SafeAreaView>
-);
+const { width, height } = Dimensions.get('window');
+
+const PhotoPreviewSection = ({ photo, handleRetakePhoto, handleSavePhoto }) => {
+  // Check if the orientation information is available
+  const isVertical = photo.orientation === 'vertical';
+  
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={[
+        styles.imageWrapper,
+        isVertical ? styles.verticalWrapper : styles.horizontalWrapper
+      ]}>
+        <Image
+          style={styles.image}
+          source={{ uri: photo.uri }}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity style={styles.actionButton} onPress={handleRetakePhoto}>
+          <Fontisto name="trash" size={32} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.actionButton, styles.saveButton]} onPress={handleSavePhoto}>
+          <AntDesign name="save" size={32} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -34,9 +41,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   imageWrapper: {
-    width: '100%',
-    height: '80%',
-    borderRadius: 15,
+    borderRadius: 11,
     overflow: 'hidden',
     backgroundColor: '#333',
     shadowColor: '#000',
@@ -45,11 +50,22 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 10,
     marginBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verticalWrapper: {
+    width: width * 0.8,
+    height: height * 0.5,
+    aspectRatio: 0.8 / 0.3, // Approximating the 80% width / 30% height ratio from the vertical guide box
+  },
+  horizontalWrapper: {
+    width: width * 0.6,
+    height: height * 0.4,
+    aspectRatio: 0.6 / 0.5, // Approximating the 60% width / 50% height ratio from the horizontal guide box
   },
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'contain', // Ensure the image fits within the box without cropping
   },
   actionsContainer: {
     flexDirection: 'row',
@@ -57,7 +73,7 @@ const styles = StyleSheet.create({
     width: '60%',
   },
   actionButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#ff4d4d',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 30,
@@ -68,6 +84,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50',
   },
 });
 
