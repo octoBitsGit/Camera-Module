@@ -1,3 +1,4 @@
+// fil 
 import PhotoPreviewSection from '@/components/PhotoPreviewSection';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
